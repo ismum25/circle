@@ -1,174 +1,535 @@
 <title>Scream to Reveal</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-  :root{
-    --void:#07080d;
-    --panel:#12141d;
-    --panel-2:#181b28;
-    --border:#262b3c;
-    --cold:#5eead4;
-    --hot:#ff3b5c;
-    --accent:#ffcc33;
-    --text:#f4f6fb;
-    --text-dim:#9098ad;
-    --text-dimmer:#565e73;
+  :root {
+    --void: #07080d;
+    --panel: #12141d;
+    --panel-2: #181b28;
+    --border: #262b3c;
+    --cold: #5eead4;
+    --hot: #ff3b5c;
+    --accent: #ffcc33;
+    --text: #f4f6fb;
+    --text-dim: #9098ad;
+    --text-dimmer: #565e73;
   }
 
-  *{box-sizing:border-box;}
-  html,body{height:100%;}
-  body{
-    background:var(--void);
-    color:var(--text);
-    font-family:'IBM Plex Sans', system-ui, sans-serif;
-    overflow:hidden;
-    -webkit-user-select:none; user-select:none;
+  * {
+    box-sizing: border-box;
   }
-  .num{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;}
-  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace;}
 
-  button{font-family:inherit; cursor:pointer;}
-  input[type="range"]{accent-color:var(--accent);}
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    background: var(--void);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  input[type="range"] {
+    accent-color: var(--accent);
+  }
 
   /* ---------- stage ---------- */
-  #stageWrap{position:fixed; inset:0;}
-  #stage{position:absolute; inset:0; width:100%; height:100%; display:block; background:var(--void);}
-
-  #flash{position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; mix-blend-mode:screen; transition:opacity .08s linear; z-index:25;}
-
-  #revealVideo{
-    position:fixed; inset:0; width:100%; height:100%; object-fit:cover;
-    background:#000; opacity:0; pointer-events:none; transition:opacity .5s ease; z-index:20;
+  #stageWrap {
+    position: fixed;
+    inset: 0;
   }
-  #revealVideo.show{opacity:1;}
+
+  #stage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: var(--void);
+  }
+
+  #flash {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    transition: opacity .08s linear;
+    z-index: 25;
+  }
+
+  #revealVideo {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .5s ease;
+    z-index: 20;
+  }
+
+  #revealVideo.show {
+    opacity: 1;
+  }
 
   /* ---------- HUD ---------- */
-  #hud{position:fixed; inset:0; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between; z-index:10; transition:opacity .4s ease;}
-
-  #instruction{
-    position:absolute; left:50%; top:38%; transform:translate(-50%,-50%);
-    text-align:center; letter-spacing:.14em; text-transform:uppercase;
-    font-size:clamp(20px,3.4vw,42px); font-weight:600; color:var(--text-dim);
-    text-shadow:0 0 30px rgba(94,234,212,.25);
-    transition:opacity .5s ease;
-  }
-  #instruction .pulseText{ display:inline-block; animation:pulse 2.6s ease-in-out infinite; }
-  @keyframes pulse{0%,100%{opacity:.55;}50%{opacity:1;}}
-
-  #revealBanner{
-    position:absolute; left:50%; top:14%; transform:translate(-50%,-12px);
-    text-align:center; opacity:0; transition:opacity .4s ease, transform .4s ease;
-    font-family:'Bebas Neue', 'IBM Plex Sans', sans-serif;
-    font-size:clamp(34px,6.5vw,90px); letter-spacing:.06em; color:var(--accent);
-    text-shadow:0 0 40px rgba(255,204,51,.55), 0 0 90px rgba(255,59,92,.35);
-  }
-  #revealBanner.show{opacity:1; transform:translate(-50%,0);}
-
-  #bottomBar{
-    position:absolute; left:0; right:0; bottom:0;
-    display:flex; align-items:flex-end; justify-content:center; gap:28px;
-    padding:22px clamp(16px,4vw,64px) 26px;
+  #hud {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 10;
+    transition: opacity .4s ease;
   }
 
-  #readout{text-align:center; min-width:260px;}
-  #stageLabel{
-    font-size:clamp(12px,1.6vw,16px); letter-spacing:.22em; text-transform:uppercase;
-    color:var(--hot); font-weight:600; margin-bottom:2px; height:1.4em;
-    transition:color .25s ease;
+  #instruction {
+    position: absolute;
+    left: 50%;
+    top: 38%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    font-size: clamp(20px, 3.4vw, 42px);
+    font-weight: 600;
+    color: var(--text-dim);
+    text-shadow: 0 0 30px rgba(94, 234, 212, .25);
+    transition: opacity .5s ease;
   }
-  #pct{
-    font-family:'Bebas Neue', sans-serif; font-size:clamp(56px,11vw,140px); line-height:.95;
-    letter-spacing:.02em; color:var(--cold);
-    text-shadow:0 0 22px rgba(94,234,212,.45), 0 0 60px rgba(94,234,212,.2);
-    transition:color .2s ease, text-shadow .2s ease;
-  }
-  #pct.hot{ color:var(--hot); text-shadow:0 0 26px rgba(255,59,92,.55), 0 0 70px rgba(255,59,92,.3); }
-  #pctSuffix{font-size:.42em; vertical-align:.28em; opacity:.8;}
-  #screamLevelLabel{font-size:clamp(11px,1.3vw,13px); letter-spacing:.28em; text-transform:uppercase; color:var(--text-dimmer); margin-top:2px;}
 
-  #meter{
-    width:20px; height:min(46vh,420px); border-radius:11px;
-    background:linear-gradient(180deg, rgba(255,204,51,.10), rgba(255,255,255,.03));
-    border:1px solid var(--border); position:relative; overflow:hidden;
-    box-shadow:inset 0 0 18px rgba(0,0,0,.5);
+  #instruction .pulseText {
+    display: inline-block;
+    animation: pulse 2.6s ease-in-out infinite;
   }
-  #meterFill{
-    position:absolute; left:0; right:0; bottom:0; height:0%;
-    background:linear-gradient(180deg, var(--hot), var(--accent) 55%, var(--cold));
-    transition:height .05s linear;
+
+  @keyframes pulse {
+
+    0%,
+    100% {
+      opacity: .55;
+    }
+
+    50% {
+      opacity: 1;
+    }
   }
-  #meterTarget{
-    position:absolute; left:-4px; right:-4px; top:0; height:2px; background:var(--accent);
-    box-shadow:0 0 10px var(--accent);
+
+  #revealBanner {
+    position: absolute;
+    left: 50%;
+    top: 14%;
+    transform: translate(-50%, -12px);
+    text-align: center;
+    opacity: 0;
+    transition: opacity .4s ease, transform .4s ease;
+    font-family: 'Bebas Neue', 'IBM Plex Sans', sans-serif;
+    font-size: clamp(34px, 6.5vw, 90px);
+    letter-spacing: .06em;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(255, 204, 51, .55), 0 0 90px rgba(255, 59, 92, .35);
   }
-  #meterCap{position:absolute; left:6px; right:6px; top:-2px; text-align:center; font-size:9px; letter-spacing:.18em; color:var(--accent); transform:translateY(-100%); padding-bottom:4px; text-transform:uppercase;}
+
+  #revealBanner.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  #bottomBar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 28px;
+    padding: 22px clamp(16px, 4vw, 64px) 26px;
+  }
+
+  #readout {
+    text-align: center;
+    min-width: 260px;
+  }
+
+  #stageLabel {
+    font-size: clamp(12px, 1.6vw, 16px);
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--hot);
+    font-weight: 600;
+    margin-bottom: 2px;
+    height: 1.4em;
+    transition: color .25s ease;
+  }
+
+  #pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(56px, 11vw, 140px);
+    line-height: .95;
+    letter-spacing: .02em;
+    color: var(--cold);
+    text-shadow: 0 0 22px rgba(94, 234, 212, .45), 0 0 60px rgba(94, 234, 212, .2);
+    transition: color .2s ease, text-shadow .2s ease;
+  }
+
+  #pct.hot {
+    color: var(--hot);
+    text-shadow: 0 0 26px rgba(255, 59, 92, .55), 0 0 70px rgba(255, 59, 92, .3);
+  }
+
+  #pctSuffix {
+    font-size: .42em;
+    vertical-align: .28em;
+    opacity: .8;
+  }
+
+  #screamLevelLabel {
+    font-size: clamp(11px, 1.3vw, 13px);
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    margin-top: 2px;
+  }
+
+  #meter {
+    width: 20px;
+    height: min(46vh, 420px);
+    border-radius: 11px;
+    background: linear-gradient(180deg, rgba(255, 204, 51, .10), rgba(255, 255, 255, .03));
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 18px rgba(0, 0, 0, .5);
+  }
+
+  #meterFill {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0%;
+    background: linear-gradient(180deg, var(--hot), var(--accent) 55%, var(--cold));
+    transition: height .05s linear;
+  }
+
+  #meterTarget {
+    position: absolute;
+    left: -4px;
+    right: -4px;
+    top: 0;
+    height: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+  }
+
+  #meterCap {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    top: -2px;
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: .18em;
+    color: var(--accent);
+    transform: translateY(-100%);
+    padding-bottom: 4px;
+    text-transform: uppercase;
+  }
 
   /* ---------- start gate ---------- */
-  #startScreen{
-    position:fixed; inset:0; background:radial-gradient(120% 120% at 50% 20%, #14172400, var(--void) 70%), var(--void);
-    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:26px; text-align:center; z-index:50;
-    padding:24px;
+  #startScreen {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(120% 120% at 50% 20%, #14172400, var(--void) 70%), var(--void);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 26px;
+    text-align: center;
+    z-index: 50;
+    padding: 24px;
   }
-  #startScreen .kicker{letter-spacing:.35em; text-transform:uppercase; color:var(--text-dimmer); font-size:12px; font-weight:600;}
-  #startScreen h1{
-    font-family:'Bebas Neue', sans-serif; font-weight:400; letter-spacing:.03em;
-    font-size:clamp(38px,8vw,96px); margin:0; line-height:.95;
-    background:linear-gradient(180deg,#fff,var(--cold) 60%, var(--hot));
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-  }
-  #startScreen p{color:var(--text-dim); max-width:52ch; margin:0; font-size:15px; line-height:1.55;}
-  #startBtn{
-    margin-top:6px; padding:16px 40px; border-radius:999px; border:1px solid var(--accent);
-    background:var(--accent); color:#1a1400; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-    font-size:15px; box-shadow:0 0 40px rgba(255,204,51,.35);
-  }
-  #startBtn:active{transform:scale(.97);}
-  #startErr{color:var(--hot); font-size:13px; max-width:44ch; display:none;}
 
-  /* ---------- settings ---------- */
-  #gearBtn{
-    position:fixed; top:18px; right:18px; z-index:40; width:44px; height:44px; border-radius:12px;
-    background:rgba(18,20,29,.7); border:1px solid var(--border); color:var(--text-dim);
-    display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px);
+  #startScreen .kicker {
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    font-size: 12px;
+    font-weight: 600;
   }
-  #gearBtn:hover{color:var(--text); border-color:var(--cold);}
-  #gearBtn svg{width:20px; height:20px;}
 
-  #drawer{
-    position:fixed; top:0; right:0; bottom:0; width:min(360px,92vw); z-index:39;
-    background:var(--panel); border-left:1px solid var(--border);
-    transform:translateX(100%); transition:transform .28s ease; overflow-y:auto;
-    padding:70px 20px 24px;
+  #startScreen h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    letter-spacing: .03em;
+    font-size: clamp(38px, 8vw, 96px);
+    margin: 0;
+    line-height: .95;
+    background: linear-gradient(180deg, #fff, var(--cold) 60%, var(--hot));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
-  #drawer.open{transform:translateX(0);}
-  #drawer h2{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-dimmer); margin:22px 0 10px; font-weight:600;}
-  #drawer h2:first-of-type{margin-top:0;}
-  .field{margin-bottom:14px;}
-  .field label{display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-dim); margin-bottom:6px;}
-  .field label span.val{color:var(--text); font-weight:600;}
-  .field input[type="range"]{width:100%;}
-  select, .btn2{
-    width:100%; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
-    padding:10px 12px; border-radius:9px; font-size:13px;
+
+  #startScreen p {
+    color: var(--text-dim);
+    max-width: 52ch;
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.55;
   }
-  .btn2{text-align:left; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;}
-  .btn2:hover{border-color:var(--cold);}
-  .btn2.primary{background:var(--cold); color:#03201c; border-color:var(--cold); font-weight:700; justify-content:center;}
-  .btn2.warn{color:var(--hot); border-color:rgba(255,59,92,.35);}
-  .row2{display:flex; gap:8px;}
-  .row2 .btn2{flex:1;}
-  .miniMeter{height:6px; border-radius:4px; background:var(--panel-2); overflow:hidden; margin-top:6px; border:1px solid var(--border);}
-  .miniMeter i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--cold),var(--accent),var(--hot));}
-  .toggleRow{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:var(--text-dim); padding:8px 0;}
-  .toggleRow input{width:18px; height:18px;}
-  .hint{font-size:11.5px; color:var(--text-dimmer); line-height:1.5; margin-top:4px;}
-  #closeDrawer{position:absolute; top:18px; right:18px; width:32px; height:32px; border-radius:8px; background:var(--panel-2); border:1px solid var(--border); color:var(--text-dim); display:flex; align-items:center; justify-content:center;}
-  #fileInput, #videoFileInput{display:none;}
-  #calibrateNote{font-size:12px; color:var(--accent); min-height:16px; margin-top:4px;}
 
-  [hidden]{display:none!important;}
+  #startBtn {
+    margin-top: 6px;
+    padding: 16px 40px;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #1a1400;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    font-size: 15px;
+    box-shadow: 0 0 40px rgba(255, 204, 51, .35);
+  }
 
-  @media (prefers-reduced-motion: reduce){
-    #instruction .pulseText{animation:none;}
+  #startBtn:active {
+    transform: scale(.97);
+  }
+
+  #startErr {
+    color: var(--hot);
+    font-size: 13px;
+    max-width: 44ch;
+    display: none;
+  }
+
+  /* ---------- settings ----------
+     Gear button is hidden from visitors on purpose — this is an operator-only
+     panel now that the media is baked in for everyone. Press "S" to open it. */
+  #gearBtn {
+    display: none;
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 40;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(18, 20, 29, .7);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+
+  #gearBtn:hover {
+    color: var(--text);
+    border-color: var(--cold);
+  }
+
+  #gearBtn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  #drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(360px, 92vw);
+    z-index: 39;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    transform: translateX(100%);
+    transition: transform .28s ease;
+    overflow-y: auto;
+    padding: 70px 20px 24px;
+  }
+
+  #drawer.open {
+    transform: translateX(0);
+  }
+
+  #drawer h2 {
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+    margin: 22px 0 10px;
+    font-weight: 600;
+  }
+
+  #drawer h2:first-of-type {
+    margin-top: 0;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  .field label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .field label span.val {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .field input[type="range"] {
+    width: 100%;
+  }
+
+  select,
+  .btn2 {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 9px;
+    font-size: 13px;
+  }
+
+  .btn2 {
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .btn2:hover {
+    border-color: var(--cold);
+  }
+
+  .btn2.primary {
+    background: var(--cold);
+    color: #03201c;
+    border-color: var(--cold);
+    font-weight: 700;
+    justify-content: center;
+  }
+
+  .btn2.warn {
+    color: var(--hot);
+    border-color: rgba(255, 59, 92, .35);
+  }
+
+  .row2 {
+    display: flex;
+    gap: 8px;
+  }
+
+  .row2 .btn2 {
+    flex: 1;
+  }
+
+  .miniMeter {
+    height: 6px;
+    border-radius: 4px;
+    background: var(--panel-2);
+    overflow: hidden;
+    margin-top: 6px;
+    border: 1px solid var(--border);
+  }
+
+  .miniMeter i {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--cold), var(--accent), var(--hot));
+  }
+
+  .toggleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    padding: 8px 0;
+  }
+
+  .toggleRow input {
+    width: 18px;
+    height: 18px;
+  }
+
+  .hint {
+    font-size: 11.5px;
+    color: var(--text-dimmer);
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+
+  #closeDrawer {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #fileInput,
+  #videoFileInput {
+    display: none;
+  }
+
+  #calibrateNote {
+    font-size: 12px;
+    color: var(--accent);
+    min-height: 16px;
+    margin-top: 4px;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #instruction .pulseText {
+      animation: none;
+    }
   }
 </style>
 
@@ -198,7 +559,11 @@
 </div>
 
 <button id="gearBtn" title="Settings (S)" aria-label="Settings">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V19.6a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H4.4a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H10.5a1.7 1.7 0 0 0 1-1.55V4.4a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V10.5a1.7 1.7 0 0 0 1.55 1h.09a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+    <path
+      d="M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V19.6a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H4.4a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H10.5a1.7 1.7 0 0 0 1-1.55V4.4a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V10.5a1.7 1.7 0 0 0 1.55 1h.09a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z" />
+  </svg>
 </button>
 
 <div id="drawer">
@@ -247,18 +612,21 @@
   <div class="toggleRow"><span>Test mode (hold Space / click stage)</span><input type="checkbox" id="testModeChk"></div>
 
   <h2>Event visual</h2>
-  <button class="btn2 primary" id="uploadBtn">Upload your artwork</button>
-  <button class="btn2 warn" id="resetArtBtn">Reset to default artwork</button>
+  <div class="hint">The site ships with your artwork baked in — everyone who opens the link sees it. Uploading here only
+    previews a swap in <em>this</em> browser; to change what visitors see, replace the file in the repo and redeploy.
+  </div>
+  <button class="btn2 primary" id="uploadBtn">Preview a different image</button>
+  <button class="btn2 warn" id="resetArtBtn">Reset to shipped artwork</button>
   <input type="file" id="fileInput" accept="image/*">
-  <div class="hint">PNG with transparency works best. Stored locally in this browser only.</div>
 
   <h2>Reveal video</h2>
-  <button class="btn2 primary" id="uploadVideoBtn">Upload reveal video</button>
-  <button class="btn2 warn" id="removeVideoBtn">Remove video</button>
+  <div class="hint">Same deal — the shipped video plays for every visitor. Upload here to preview a swap locally only.
+  </div>
+  <button class="btn2 primary" id="uploadVideoBtn">Preview a different video</button>
+  <button class="btn2 warn" id="removeVideoBtn">Reset to shipped video</button>
   <input type="file" id="videoFileInput" accept="video/*">
   <div class="toggleRow"><span>Play video on reveal</span><input type="checkbox" id="videoEnabledChk" checked></div>
-  <div class="hint" id="videoStatus">No video uploaded — reveal stays particles-only.</div>
-  <div class="hint">Plays fullscreen with sound the moment the target is hit, then the stage resets when it ends. Short MP4 (H.264) works best. Stored locally in this browser only.</div>
+  <div class="hint" id="videoStatus">Loading…</div>
 
   <h2>Display</h2>
   <button class="btn2" id="fullscreenBtn">Enter fullscreen (F)</button>
@@ -268,699 +636,728 @@
 <div id="startScreen">
   <div class="kicker">Live event installation</div>
   <h1>Scream to Reveal</h1>
-  <p>The microphone listens for volume, not words &mdash; louder and more sustained screams pull the particles into formation. Hit the target and hold it to trigger the reveal, then it resets for the next person.</p>
+  <p>The microphone listens for volume, not words &mdash; louder and more sustained screams pull the particles into
+    formation. Hit the target and hold it to trigger the reveal, then it resets for the next person.</p>
   <button id="startBtn">Tap to start &middot; enable microphone</button>
   <div id="startErr"></div>
 </div>
 
 <script>
-(function(){
-  "use strict";
+  (function () {
+    "use strict";
 
-  /* ================= config / state ================= */
-  var cfg = {
-    floor: 0.02, target: 0.28,
-    attack: 0.35, release: 0.045,
-    sustainMs: 350, holdMs: 4000, explodeMs: 1300, cooldownMs: 700,
-    autoReset: true, testMode: false, videoEnabled: true
-  };
-  var LS_SETTINGS = 'screamReveal.settings.v1';
-  var LS_ARTWORK = 'screamReveal.artwork.v1';
-  var IDB_NAME = 'screamRevealDB', IDB_STORE = 'files', IDB_VIDEO_KEY = 'video';
+    /* ================= config / state ================= */
+    var cfg = {
+      floor: 0.02, target: 0.28,
+      attack: 0.35, release: 0.045,
+      sustainMs: 350, holdMs: 4000, explodeMs: 1300, cooldownMs: 700,
+      autoReset: true, testMode: false, videoEnabled: true
+    };
+    var LS_SETTINGS = 'screamReveal.settings.v1';
+    var LS_ARTWORK = 'screamReveal.artwork.v1';
+    var IDB_NAME = 'screamRevealDB', IDB_STORE = 'files', IDB_VIDEO_KEY = 'video';
 
-  var hasVideo=false, videoPlaying=false, currentVideoObjectURL=null, videoSafetyTimer=null;
+    var hasVideo = false, videoPlaying = false, currentVideoObjectURL = null, videoSafetyTimer = null;
 
-  /* ================= tiny IndexedDB blob store (for the reveal video) ================= */
-  function idbOpen(){
-    return new Promise(function(resolve,reject){
-      if(!window.indexedDB){ reject(new Error('no indexeddb')); return; }
-      var req=indexedDB.open(IDB_NAME, 1);
-      req.onupgradeneeded=function(){ req.result.createObjectStore(IDB_STORE); };
-      req.onsuccess=function(){ resolve(req.result); };
-      req.onerror=function(){ reject(req.error); };
-    });
-  }
-  function idbSet(key, val){
-    return idbOpen().then(function(db){
-      return new Promise(function(resolve,reject){
-        var tx=db.transaction(IDB_STORE,'readwrite');
-        tx.objectStore(IDB_STORE).put(val, key);
-        tx.oncomplete=function(){ resolve(); };
-        tx.onerror=function(){ reject(tx.error); };
+    /* ================= tiny IndexedDB blob store (for the reveal video) ================= */
+    function idbOpen() {
+      return new Promise(function (resolve, reject) {
+        if (!window.indexedDB) { reject(new Error('no indexeddb')); return; }
+        var req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = function () { req.result.createObjectStore(IDB_STORE); };
+        req.onsuccess = function () { resolve(req.result); };
+        req.onerror = function () { reject(req.error); };
       });
-    });
-  }
-  function idbGet(key){
-    return idbOpen().then(function(db){
-      return new Promise(function(resolve,reject){
-        var tx=db.transaction(IDB_STORE,'readonly');
-        var req=tx.objectStore(IDB_STORE).get(key);
-        req.onsuccess=function(){ resolve(req.result); };
-        req.onerror=function(){ reject(req.error); };
+    }
+    function idbSet(key, val) {
+      return idbOpen().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).put(val, key);
+          tx.oncomplete = function () { resolve(); };
+          tx.onerror = function () { reject(tx.error); };
+        });
       });
-    });
-  }
-  function idbDelete(key){
-    return idbOpen().then(function(db){
-      return new Promise(function(resolve,reject){
-        var tx=db.transaction(IDB_STORE,'readwrite');
-        tx.objectStore(IDB_STORE).delete(key);
-        tx.oncomplete=function(){ resolve(); };
-        tx.onerror=function(){ reject(tx.error); };
+    }
+    function idbGet(key) {
+      return idbOpen().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var tx = db.transaction(IDB_STORE, 'readonly');
+          var req = tx.objectStore(IDB_STORE).get(key);
+          req.onsuccess = function () { resolve(req.result); };
+          req.onerror = function () { reject(req.error); };
+        });
       });
-    });
-  }
+    }
+    function idbDelete(key) {
+      return idbOpen().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          var tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).delete(key);
+          tx.oncomplete = function () { resolve(); };
+          tx.onerror = function () { reject(tx.error); };
+        });
+      });
+    }
 
-  var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var audioCtx=null, analyser=null, micSource=null, timeData=null, freqData=null, micStream=null;
-  var rawLevel=0, smoothedScore=0, highFreqEnergy=0;
-  var testHeld=false, testRamp=0;
+    var audioCtx = null, analyser = null, micSource = null, timeData = null, freqData = null, micStream = null;
+    var rawLevel = 0, smoothedScore = 0, highFreqEnergy = 0;
+    var testHeld = false, testRamp = 0;
 
-  var state='idle'; // idle | forming | revealed | exploding
-  var sustainAbove=0, stateSince=performance.now();
+    var state = 'idle'; // idle | forming | revealed | exploding
+    var sustainAbove = 0, stateSince = performance.now();
 
-  var canvas=document.getElementById('stage'), ctx=canvas.getContext('2d');
-  var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2);
+    var canvas = document.getElementById('stage'), ctx = canvas.getContext('2d');
+    var W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-  var particles=[];
-  var PARTICLE_COUNT=1600;
+    var particles = [];
+    var PARTICLE_COUNT = 1600;
 
-  /* ================= sizing ================= */
-  function resize(){
-    W=window.innerWidth; H=window.innerHeight;
-    canvas.width=W*DPR; canvas.height=H*DPR;
-    canvas.style.width=W+'px'; canvas.style.height=H+'px';
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-  }
-  window.addEventListener('resize', resize);
-  resize();
+    /* ================= sizing ================= */
+    function resize() {
+      W = window.innerWidth; H = window.innerHeight;
+      canvas.width = W * DPR; canvas.height = H * DPR;
+      canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
 
-  /* ================= default artwork ================= */
-  // Draws a placeholder medallion into a square offscreen canvas and
-  // returns {targets:[{nx,ny,r,g,b}], }. nx/ny in [-0.5,0.5].
-  function sampleFromCanvas(off){
-    var w=off.width, h=off.height;
-    var img=off.getContext('2d').getImageData(0,0,w,h).data;
-    var pts=[];
-    var step=Math.max(1, Math.round(Math.sqrt((w*h)/9000)));
-    for(var y=0;y<h;y+=step){
-      for(var x=0;x<w;x+=step){
-        var i=(y*w+x)*4;
-        var a=img[i+3];
-        if(a>60){
-          pts.push({
-            nx:(x/w-0.5), ny:(y/h-0.5),
-            r:img[i], g:img[i+1], b:img[i+2]
-          });
+    /* ================= default artwork ================= */
+    // Draws a placeholder medallion into a square offscreen canvas and
+    // returns {targets:[{nx,ny,r,g,b}], }. nx/ny in [-0.5,0.5].
+    function sampleFromCanvas(off) {
+      var w = off.width, h = off.height;
+      var img = off.getContext('2d').getImageData(0, 0, w, h).data;
+      var pts = [];
+      var step = Math.max(1, Math.round(Math.sqrt((w * h) / 9000)));
+      for (var y = 0; y < h; y += step) {
+        for (var x = 0; x < w; x += step) {
+          var i = (y * w + x) * 4;
+          var a = img[i + 3];
+          if (a > 60) {
+            pts.push({
+              nx: (x / w - 0.5), ny: (y / h - 0.5),
+              r: img[i], g: img[i + 1], b: img[i + 2]
+            });
+          }
         }
       }
+      // shuffle + cap
+      for (var j = pts.length - 1; j > 0; j--) { var k = (Math.random() * (j + 1)) | 0; var t = pts[j]; pts[j] = pts[k]; pts[k] = t; }
+      if (pts.length > PARTICLE_COUNT * 1.4) pts.length = Math.floor(PARTICLE_COUNT * 1.4);
+      return pts;
     }
-    // shuffle + cap
-    for(var j=pts.length-1;j>0;j--){ var k=(Math.random()*(j+1))|0; var t=pts[j]; pts[j]=pts[k]; pts[k]=t; }
-    if(pts.length>PARTICLE_COUNT*1.4) pts.length=Math.floor(PARTICLE_COUNT*1.4);
-    return pts;
-  }
 
-  function buildDefaultArtwork(){
-    var S=640, off=document.createElement('canvas'); off.width=S; off.height=S;
-    var c=off.getContext('2d');
-    c.clearRect(0,0,S,S);
-    c.translate(S/2,S/2);
+    function buildDefaultArtwork() {
+      var S = 640, off = document.createElement('canvas'); off.width = S; off.height = S;
+      var c = off.getContext('2d');
+      c.clearRect(0, 0, S, S);
+      c.translate(S / 2, S / 2);
 
-    // radiant sunburst rings
-    for(var ring=0; ring<3; ring++){
-      var rr=150+ring*46;
+      // radiant sunburst rings
+      for (var ring = 0; ring < 3; ring++) {
+        var rr = 150 + ring * 46;
+        c.save();
+        c.strokeStyle = ring % 2 === 0 ? '#5eead4' : '#ff3b5c';
+        c.lineWidth = 6 - ring;
+        c.globalAlpha = 0.9 - ring * 0.18;
+        c.setLineDash(ring === 1 ? [] : [18, 14]);
+        c.beginPath(); c.arc(0, 0, rr, 0, Math.PI * 2); c.stroke();
+        c.restore();
+      }
+      // burst spikes
+      var spikes = 18;
       c.save();
-      c.strokeStyle = ring%2===0 ? '#5eead4' : '#ff3b5c';
-      c.lineWidth = 6-ring;
-      c.globalAlpha = 0.9-ring*0.18;
-      c.setLineDash(ring===1?[]:[18,14]);
-      c.beginPath(); c.arc(0,0,rr,0,Math.PI*2); c.stroke();
+      for (var s = 0; s < spikes; s++) {
+        var ang = (s / spikes) * Math.PI * 2;
+        var len = 205 + (s % 2 === 0 ? 26 : 0);
+        c.save();
+        c.rotate(ang);
+        var grad = c.createLinearGradient(0, -len, 0, -150);
+        grad.addColorStop(0, '#ffcc33'); grad.addColorStop(1, 'rgba(255,204,51,0)');
+        c.fillStyle = grad;
+        c.beginPath();
+        c.moveTo(-5, -150); c.lineTo(0, -len); c.lineTo(5, -150); c.closePath();
+        c.fill();
+        c.restore();
+      }
       c.restore();
+
+      // core disc
+      var core = c.createRadialGradient(0, 0, 10, 0, 0, 132);
+      core.addColorStop(0, '#fff'); core.addColorStop(0.55, '#5eead4'); core.addColorStop(1, '#0d3b34');
+      c.fillStyle = core;
+      c.beginPath(); c.arc(0, 0, 132, 0, Math.PI * 2); c.fill();
+
+      // wordmark
+      c.fillStyle = '#07080d';
+      c.font = '700 68px "IBM Plex Sans", sans-serif';
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText('REVEAL', 0, 8);
+
+      return sampleFromCanvas(off);
     }
-    // burst spikes
-    var spikes=18;
-    c.save();
-    for(var s=0;s<spikes;s++){
-      var ang=(s/spikes)*Math.PI*2;
-      var len = 205 + (s%2===0?26:0);
-      c.save();
-      c.rotate(ang);
-      var grad=c.createLinearGradient(0,-len,0,-150);
-      grad.addColorStop(0,'#ffcc33'); grad.addColorStop(1,'rgba(255,204,51,0)');
-      c.fillStyle=grad;
-      c.beginPath();
-      c.moveTo(-5,-150); c.lineTo(0,-len); c.lineTo(5,-150); c.closePath();
-      c.fill();
-      c.restore();
-    }
-    c.restore();
 
-    // core disc
-    var core=c.createRadialGradient(0,0,10,0,0,132);
-    core.addColorStop(0,'#fff'); core.addColorStop(0.55,'#5eead4'); core.addColorStop(1,'#0d3b34');
-    c.fillStyle=core;
-    c.beginPath(); c.arc(0,0,132,0,Math.PI*2); c.fill();
+    function buildArtworkFromImage(imgEl) {
+      var S = 640, off = document.createElement('canvas'); off.width = S; off.height = S;
+      var c = off.getContext('2d'); c.clearRect(0, 0, S, S);
+      var scale = Math.min(S / imgEl.width, S / imgEl.height);
+      var w = imgEl.width * scale, h = imgEl.height * scale;
+      var dx = (S - w) / 2, dy = (S - h) / 2;
+      c.drawImage(imgEl, dx, dy, w, h);
 
-    // wordmark
-    c.fillStyle='#07080d';
-    c.font='700 68px "IBM Plex Sans", sans-serif';
-    c.textAlign='center'; c.textBaseline='middle';
-    c.fillText('REVEAL', 0, 8);
+      var data = c.getImageData(0, 0, S, S).data;
+      var hasAlpha = false;
+      for (var p = 3; p < data.length; p += 4 * 97) { if (data[p] < 250) { hasAlpha = true; break; } }
 
-    return sampleFromCanvas(off);
-  }
-
-  function buildArtworkFromImage(imgEl){
-    var S=640, off=document.createElement('canvas'); off.width=S; off.height=S;
-    var c=off.getContext('2d'); c.clearRect(0,0,S,S);
-    var scale=Math.min(S/imgEl.width, S/imgEl.height);
-    var w=imgEl.width*scale, h=imgEl.height*scale;
-    var dx=(S-w)/2, dy=(S-h)/2;
-    c.drawImage(imgEl, dx, dy, w, h);
-
-    var data=c.getImageData(0,0,S,S).data;
-    var hasAlpha=false;
-    for(var p=3;p<data.length;p+=4*97){ if(data[p]<250){hasAlpha=true; break;} }
-
-    if(!hasAlpha){
-      // no meaningful transparency: key out background by corner-color distance
-      var corners=[[2,2],[S-3,2],[2,S-3],[S-3,S-3]];
-      var br=0,bg=0,bb=0;
-      corners.forEach(function(pt){
-        var i=(pt[1]*S+pt[0])*4;
-        br+=data[i]; bg+=data[i+1]; bb+=data[i+2];
-      });
-      br/=4; bg/=4; bb/=4;
-      var out=c.createImageData(S,S);
-      var od=out.data;
-      for(var y=0;y<S;y++){
-        for(var x=0;x<S;x++){
-          var i2=(y*S+x)*4;
-          var dr=data[i2]-br, dg=data[i2+1]-bg, db=data[i2+2]-bb;
-          var dist=Math.sqrt(dr*dr+dg*dg+db*db);
-          od[i2]=data[i2]; od[i2+1]=data[i2+1]; od[i2+2]=data[i2+2];
-          od[i2+3]= dist>36 ? 255 : 0;
+      if (!hasAlpha) {
+        // no meaningful transparency: key out background by corner-color distance
+        var corners = [[2, 2], [S - 3, 2], [2, S - 3], [S - 3, S - 3]];
+        var br = 0, bg = 0, bb = 0;
+        corners.forEach(function (pt) {
+          var i = (pt[1] * S + pt[0]) * 4;
+          br += data[i]; bg += data[i + 1]; bb += data[i + 2];
+        });
+        br /= 4; bg /= 4; bb /= 4;
+        var out = c.createImageData(S, S);
+        var od = out.data;
+        for (var y = 0; y < S; y++) {
+          for (var x = 0; x < S; x++) {
+            var i2 = (y * S + x) * 4;
+            var dr = data[i2] - br, dg = data[i2 + 1] - bg, db = data[i2 + 2] - bb;
+            var dist = Math.sqrt(dr * dr + dg * dg + db * db);
+            od[i2] = data[i2]; od[i2 + 1] = data[i2 + 1]; od[i2 + 2] = data[i2 + 2];
+            od[i2 + 3] = dist > 36 ? 255 : 0;
+          }
         }
+        c.putImageData(out, 0, 0);
       }
-      c.putImageData(out,0,0);
-    }
-    return sampleFromCanvas(off);
-  }
-
-  var currentTargets=buildDefaultArtwork();
-
-  /* ================= particles ================= */
-  function initParticles(targets){
-    particles=[];
-    var n=Math.min(PARTICLE_COUNT, Math.max(600,targets.length));
-    for(var i=0;i<n;i++){
-      var t = targets.length ? targets[i % targets.length] : {nx:0,ny:0,r:255,g:255,b:255};
-      particles.push({
-        x: Math.random()*W, y: Math.random()*H,
-        hx: Math.random()*W, hy: Math.random()*H, // idle home
-        vx:0, vy:0,
-        nx:t.nx, ny:t.ny,
-        cr:t.r, cg:t.g, cb:t.b,
-        size: 1.1+Math.random()*1.8,
-        phase: Math.random()*Math.PI*2,
-        jitterSeed: Math.random()*1000
-      });
-    }
-  }
-  initParticles(currentTargets);
-
-  function assignNewHomes(){
-    particles.forEach(function(p){ p.hx=Math.random()*W; p.hy=Math.random()*H; });
-  }
-
-  function artCenter(){
-    return { x: W/2, y: H*0.42, scale: Math.min(W,H)*0.62 };
-  }
-
-  /* ================= audio ================= */
-  function computeLevels(){
-    if(cfg.testMode){
-      var target = testHeld ? 1 : 0;
-      testRamp += (target-testRamp) * (testHeld?0.05:0.03);
-      rawLevel = testRamp*0.9;
-      highFreqEnergy = testRamp;
-      return;
-    }
-    if(!analyser){ rawLevel=0; highFreqEnergy=0; return; }
-    analyser.getByteTimeDomainData(timeData);
-    var sum=0;
-    for(var i=0;i<timeData.length;i++){ var v=(timeData[i]-128)/128; sum+=v*v; }
-    rawLevel = Math.sqrt(sum/timeData.length);
-
-    analyser.getByteFrequencyData(freqData);
-    var n=freqData.length, hiStart=Math.floor(n*0.5), hiSum=0, total=0;
-    for(var j=0;j<n;j++){ total+=freqData[j]; if(j>hiStart) hiSum+=freqData[j]; }
-    highFreqEnergy = total>0 ? Math.min(1, (hiSum/(n-hiStart))/140) : 0;
-  }
-
-  async function startMic(deviceId){
-    var constraints = { audio:{
-      echoCancellation:false, noiseSuppression:false, autoGainControl:false,
-      deviceId: deviceId? {exact:deviceId}: undefined
-    }};
-    var stream = await navigator.mediaDevices.getUserMedia(constraints);
-    if(micStream){ micStream.getTracks().forEach(function(t){t.stop();}); }
-    micStream=stream;
-    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    if(micSource) micSource.disconnect();
-    micSource = audioCtx.createMediaStreamSource(stream);
-    if(!analyser){
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize=2048; analyser.smoothingTimeConstant=0.75;
-      timeData = new Uint8Array(analyser.fftSize);
-      freqData = new Uint8Array(analyser.frequencyBinCount);
-    }
-    micSource.connect(analyser);
-    await populateMicList();
-  }
-
-  async function populateMicList(){
-    try{
-      var devices = await navigator.mediaDevices.enumerateDevices();
-      var mics = devices.filter(function(d){return d.kind==='audioinput';});
-      micSelect.innerHTML='';
-      mics.forEach(function(d,i){
-        var opt=document.createElement('option');
-        opt.value=d.deviceId; opt.textContent=d.label || ('Microphone '+(i+1));
-        micSelect.appendChild(opt);
-      });
-      if(micStream){
-        var track=micStream.getAudioTracks()[0];
-        if(track){ micSelect.value = track.getSettings().deviceId || micSelect.value; }
-      }
-    }catch(e){}
-  }
-
-  /* ================= state machine ================= */
-  function stageLabelFor(score, st){
-    if(st==='revealed') return 'Target hit!';
-    if(st==='exploding') return 'Target hit!';
-    if(score<0.12) return 'Idle';
-    if(score<0.4) return 'Getting louder';
-    if(score<0.7) return "It's forming…";
-    if(score<0.95) return 'Scream louder!';
-    return 'Almost there!';
-  }
-
-  var lastT=performance.now();
-  function tick(now){
-    var dt=Math.min(64, now-lastT); lastT=now;
-
-    computeLevels();
-    var target = rawLevel > smoothedScore ? cfg.attack : cfg.release;
-    smoothedScore += (rawLevel - smoothedScore) * Math.min(1, target*(dt/16.67));
-
-    var norm = (smoothedScore - cfg.floor) / Math.max(0.001, (cfg.target - cfg.floor));
-    norm = Math.max(0, Math.min(1, norm));
-
-    if(state==='idle' && norm>0.04) state='forming';
-    if(state==='forming' && norm<=0.015) state='idle';
-
-    if(state==='forming'){
-      if(norm>=0.995){ sustainAbove+=dt; } else { sustainAbove=0; }
-      if(sustainAbove>=cfg.sustainMs){
-        state='revealed'; stateSince=now; sustainAbove=0;
-        flashOnce();
-        if(hasVideo && cfg.videoEnabled){ playRevealVideo(); }
-      }
+      return sampleFromCanvas(off);
     }
 
-    if(state==='revealed' && !videoPlaying && (now-stateSince)>=cfg.holdMs){
-      if(cfg.autoReset){ state='exploding'; stateSince=now; }
-    }
-    if(state==='exploding' && (now-stateSince)>=cfg.explodeMs){
-      assignNewHomes();
-      state='idle'; stateSince=now; norm=0;
-    }
+    var currentTargets = buildDefaultArtwork();
 
-    updateParticles(norm, dt, now);
-    render(norm, now);
-    updateHud(norm);
-    updateLiveMeter();
-
-    requestAnimationFrame(tick);
-  }
-
-  function flashOnce(){
-    if(reducedMotion) return;
-    flashEl.style.opacity='0.9';
-    setTimeout(function(){ flashEl.style.opacity='0'; }, 90);
-  }
-
-  function updateParticles(norm, dt, now){
-    var c=artCenter();
-    var pull;
-    if(state==='revealed') pull=1;
-    else if(state==='exploding') pull=0;
-    else pull=Math.pow(norm,1.4);
-
-    var jitterAmt = (0.35 + highFreqEnergy*1.6) * (reducedMotion?0.35:1);
-
-    for(var i=0;i<particles.length;i++){
-      var p=particles[i];
-      var tx, ty;
-      if(pull>0.001){
-        tx = c.x + p.nx*c.scale;
-        ty = c.y + p.ny*c.scale;
-      } else {
-        tx = p.hx; ty = p.hy;
-      }
-
-      if(state==='exploding'){
-        var dx0=p.x-c.x, dy0=p.y-c.y;
-        var d0=Math.sqrt(dx0*dx0+dy0*dy0)||1;
-        p.vx += (dx0/d0) * 0.9;
-        p.vy += (dy0/d0) * 0.9;
-      } else {
-        var mix = pull;
-        var ax = ( (tx-p.x) * (0.02 + mix*0.10) );
-        var ay = ( (ty-p.y) * (0.02 + mix*0.10) );
-        p.vx += ax; p.vy += ay;
-        p.vx += Math.sin(now*0.0016 + p.phase)*jitterAmt*(1-mix*0.6);
-        p.vy += Math.cos(now*0.0014 + p.phase*1.3)*jitterAmt*(1-mix*0.6);
-      }
-
-      p.vx*=0.86; p.vy*=0.86;
-      p.x+=p.vx; p.y+=p.vy;
-
-      if(p.x<-40)p.x=-40; if(p.x>W+40)p.x=W+40;
-      if(p.y<-40)p.y=-40; if(p.y>H+40)p.y=H+40;
-
-      p.formAmt = pull;
-    }
-  }
-
-  function render(norm, now){
-    ctx.globalCompositeOperation='source-over';
-    ctx.fillStyle='rgba(7,8,13,0.20)';
-    ctx.fillRect(0,0,W,H);
-
-    ctx.globalCompositeOperation='lighter';
-    for(var i=0;i<particles.length;i++){
-      var p=particles[i];
-      var heat=Math.min(1, norm*1.1);
-      var cr = lerp(94, 255, heat), cg=lerp(234, 59, heat), cb=lerp(212, 92, heat);
-      var fr = lerp(cr, p.cr, p.formAmt), fg = lerp(cg, p.cg, p.formAmt), fb = lerp(cb, p.cb, p.formAmt);
-      var alpha = 0.55 + p.formAmt*0.4;
-      var r = p.size * (1 + p.formAmt*0.9 + heat*0.3);
-      ctx.fillStyle = 'rgba('+(fr|0)+','+(fg|0)+','+(fb|0)+','+alpha.toFixed(2)+')';
-      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI*2); ctx.fill();
-    }
-    ctx.globalCompositeOperation='source-over';
-  }
-  function lerp(a,b,t){ return a+(b-a)*t; }
-
-  /* ================= HUD ================= */
-  var pctEl=document.getElementById('pct'), pctSuffix=document.getElementById('pctSuffix');
-  var stageLabelEl=document.getElementById('stageLabel');
-  var meterFill=document.getElementById('meterFill');
-  var instructionEl=document.getElementById('instruction');
-  var revealBanner=document.getElementById('revealBanner');
-  var flashEl=document.getElementById('flash');
-  var liveMeter=document.getElementById('liveMeter');
-  var hudEl=document.getElementById('hud');
-  var videoEl=document.getElementById('revealVideo');
-
-  /* ================= reveal video ================= */
-  function playRevealVideo(){
-    videoPlaying=true;
-    try{
-      videoEl.muted=false;
-      videoEl.currentTime=0;
-      videoEl.classList.add('show');
-      var p=videoEl.play();
-      if(p && p.catch){
-        p.catch(function(){
-          // autoplay-with-sound blocked: retry muted so the reveal still plays visually
-          videoEl.muted=true;
-          videoEl.play().catch(function(){ videoPlaying=false; videoEl.classList.remove('show'); });
+    /* ================= particles ================= */
+    function initParticles(targets) {
+      particles = [];
+      var n = Math.min(PARTICLE_COUNT, Math.max(600, targets.length));
+      for (var i = 0; i < n; i++) {
+        var t = targets.length ? targets[i % targets.length] : { nx: 0, ny: 0, r: 255, g: 255, b: 255 };
+        particles.push({
+          x: Math.random() * W, y: Math.random() * H,
+          hx: Math.random() * W, hy: Math.random() * H, // idle home
+          vx: 0, vy: 0,
+          nx: t.nx, ny: t.ny,
+          cr: t.r, cg: t.g, cb: t.b,
+          size: 1.1 + Math.random() * 1.8,
+          phase: Math.random() * Math.PI * 2,
+          jitterSeed: Math.random() * 1000,
+          revealAt: Math.random(), // scream level at which this particle "wakes up" and joins the artwork
+          actEase: 0
         });
       }
-    }catch(e){ videoPlaying=false; }
-    clearTimeout(videoSafetyTimer);
-    videoSafetyTimer=setTimeout(function(){ if(videoPlaying) forceReset(); }, 60000);
-  }
-  function forceReset(){
-    if(videoPlaying){
-      videoPlaying=false;
-      try{ videoEl.pause(); }catch(e){}
-      videoEl.classList.remove('show');
-      clearTimeout(videoSafetyTimer);
     }
-    state='exploding'; stateSince=performance.now();
-  }
-  videoEl.addEventListener('ended', forceReset);
-  videoEl.addEventListener('error', function(){ if(videoPlaying) forceReset(); });
-
-  function updateHud(norm){
-    var pct=Math.round(norm*100);
-    pctEl.childNodes[0].nodeValue=pct;
-    meterFill.style.height=(norm*100)+'%';
-    stageLabelEl.textContent=stageLabelFor(norm, state);
-    pctEl.classList.toggle('hot', norm>0.55 || state==='revealed');
-
-    instructionEl.style.opacity = (state==='idle') ? '1' : '0';
-    revealBanner.classList.toggle('show', (state==='revealed' || state==='exploding') && !videoPlaying);
-    hudEl.style.opacity = videoPlaying ? '0' : '1';
-  }
-  function updateLiveMeter(){
-    var span=Math.max(0.001, cfg.target - cfg.floor*0.3);
-    var v=Math.max(0, Math.min(1, (smoothedScore - cfg.floor*0.3)/span));
-    liveMeter.style.width=(v*100)+'%';
-  }
-
-  /* ================= settings UI ================= */
-  var drawer=document.getElementById('drawer');
-  var gearBtn=document.getElementById('gearBtn');
-  var closeDrawer=document.getElementById('closeDrawer');
-  function openDrawer(){ drawer.classList.add('open'); }
-  function toggleDrawer(){ drawer.classList.toggle('open'); }
-  gearBtn.addEventListener('click', toggleDrawer);
-  closeDrawer.addEventListener('click', function(){ drawer.classList.remove('open'); });
-
-  var floorSlider=document.getElementById('floorSlider'), floorVal=document.getElementById('floorVal');
-  var targetSlider=document.getElementById('targetSlider'), targetVal=document.getElementById('targetVal');
-  var attackSlider=document.getElementById('attackSlider'), attackVal=document.getElementById('attackVal');
-  var releaseSlider=document.getElementById('releaseSlider'), releaseVal=document.getElementById('releaseVal');
-  var sustainSlider=document.getElementById('sustainSlider'), sustainVal=document.getElementById('sustainVal');
-  var holdSlider=document.getElementById('holdSlider'), holdVal=document.getElementById('holdVal');
-  var autoResetChk=document.getElementById('autoResetChk');
-  var testModeChk=document.getElementById('testModeChk');
-  var micSelect=document.getElementById('micSelect');
-  var calibrateNote=document.getElementById('calibrateNote');
-
-  function syncSlidersFromCfg(){
-    floorSlider.value=cfg.floor; floorVal.textContent=cfg.floor.toFixed(3);
-    targetSlider.value=cfg.target; targetVal.textContent=cfg.target.toFixed(3);
-    attackSlider.value=cfg.attack; attackVal.textContent=cfg.attack.toFixed(2);
-    releaseSlider.value=cfg.release; releaseVal.textContent=cfg.release.toFixed(3);
-    sustainSlider.value=cfg.sustainMs; sustainVal.textContent=cfg.sustainMs+'ms';
-    holdSlider.value=cfg.holdMs/1000; holdVal.textContent=(cfg.holdMs/1000).toFixed(1)+'s';
-    autoResetChk.checked=cfg.autoReset;
-    testModeChk.checked=cfg.testMode;
-    videoEnabledChk.checked=cfg.videoEnabled;
-  }
-  function saveSettings(){
-    try{
-      localStorage.setItem(LS_SETTINGS, JSON.stringify({
-        floor:cfg.floor, target:cfg.target, attack:cfg.attack, release:cfg.release,
-        sustainMs:cfg.sustainMs, holdMs:cfg.holdMs, autoReset:cfg.autoReset, videoEnabled:cfg.videoEnabled
-      }));
-    }catch(e){}
-  }
-  function loadSettings(){
-    try{
-      var raw=localStorage.getItem(LS_SETTINGS);
-      if(raw){ var s=JSON.parse(raw); Object.assign(cfg, s); }
-    }catch(e){}
-  }
-
-  floorSlider.addEventListener('input', function(){ cfg.floor=parseFloat(this.value); floorVal.textContent=cfg.floor.toFixed(3); saveSettings(); });
-  targetSlider.addEventListener('input', function(){ cfg.target=parseFloat(this.value); targetVal.textContent=cfg.target.toFixed(3); saveSettings(); });
-  attackSlider.addEventListener('input', function(){ cfg.attack=parseFloat(this.value); attackVal.textContent=cfg.attack.toFixed(2); saveSettings(); });
-  releaseSlider.addEventListener('input', function(){ cfg.release=parseFloat(this.value); releaseVal.textContent=cfg.release.toFixed(3); saveSettings(); });
-  sustainSlider.addEventListener('input', function(){ cfg.sustainMs=parseFloat(this.value); sustainVal.textContent=cfg.sustainMs+'ms'; saveSettings(); });
-  holdSlider.addEventListener('input', function(){ cfg.holdMs=parseFloat(this.value)*1000; holdVal.textContent=(cfg.holdMs/1000).toFixed(1)+'s'; saveSettings(); });
-  autoResetChk.addEventListener('change', function(){ cfg.autoReset=this.checked; saveSettings(); });
-  testModeChk.addEventListener('change', function(){ cfg.testMode=this.checked; });
-  micSelect.addEventListener('change', function(){ startMic(this.value).catch(showMicError); });
-
-  document.getElementById('setFloorBtn').addEventListener('click', function(){
-    calibrateNote.textContent='Listening to room tone…';
-    var samples=[], startT=performance.now();
-    var iv=setInterval(function(){
-      samples.push(rawLevel);
-      if(performance.now()-startT>1100){
-        clearInterval(iv);
-        var avg=samples.reduce(function(a,b){return a+b;},0)/Math.max(1,samples.length);
-        cfg.floor=Math.max(0.002, avg*1.2);
-        syncSlidersFromCfg(); saveSettings();
-        calibrateNote.textContent='Idle floor set: '+cfg.floor.toFixed(3);
-      }
-    }, 40);
-  });
-  document.getElementById('setTargetBtn').addEventListener('click', function(){
-    var count=3;
-    calibrateNote.textContent='Scream in '+count+'…';
-    var pre=setInterval(function(){
-      count--;
-      if(count<=0){ clearInterval(pre); beginCapture(); }
-      else calibrateNote.textContent='Scream in '+count+'…';
-    }, 700);
-    function beginCapture(){
-      calibrateNote.textContent='SCREAM NOW!';
-      var peak=0, startT=performance.now();
-      var iv=setInterval(function(){
-        if(rawLevel>peak) peak=rawLevel;
-        if(performance.now()-startT>2200){
-          clearInterval(iv);
-          cfg.target=Math.max(cfg.floor+0.02, peak*0.96);
-          syncSlidersFromCfg(); saveSettings();
-          calibrateNote.textContent='Target set: '+cfg.target.toFixed(3);
-        }
-      }, 30);
-    }
-  });
-
-  document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
-  document.getElementById('resetNowBtn').addEventListener('click', forceReset);
-  function toggleFullscreen(){
-    if(!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(function(){}); }
-    else { document.exitFullscreen().catch(function(){}); }
-  }
-
-  /* artwork upload */
-  var uploadBtn=document.getElementById('uploadBtn'), fileInput=document.getElementById('fileInput');
-  uploadBtn.addEventListener('click', function(){ fileInput.click(); });
-  fileInput.addEventListener('change', function(){
-    var f=this.files && this.files[0]; if(!f) return;
-    var reader=new FileReader();
-    reader.onload=function(e){
-      var dataUrl=e.target.result;
-      var img=new Image();
-      img.onload=function(){
-        currentTargets=buildArtworkFromImage(img);
-        initParticles(currentTargets);
-        try{ localStorage.setItem(LS_ARTWORK, dataUrl); }catch(err){}
-      };
-      img.src=dataUrl;
-    };
-    reader.readAsDataURL(f);
-  });
-  document.getElementById('resetArtBtn').addEventListener('click', function(){
-    try{ localStorage.removeItem(LS_ARTWORK); }catch(e){}
-    currentTargets=buildDefaultArtwork();
     initParticles(currentTargets);
-  });
 
-  function loadSavedArtwork(){
-    try{
-      var saved=localStorage.getItem(LS_ARTWORK);
-      if(saved){
-        var img=new Image();
-        img.onload=function(){ currentTargets=buildArtworkFromImage(img); initParticles(currentTargets); };
-        img.src=saved;
+    function assignNewHomes() {
+      particles.forEach(function (p) {
+        p.hx = Math.random() * W; p.hy = Math.random() * H;
+        p.revealAt = Math.random(); // re-shuffle so the next scream assembles the artwork in a fresh order
+        p.actEase = 0;
+      });
+    }
+
+    function artCenter() {
+      return { x: W / 2, y: H * 0.42, scale: Math.min(W, H) * 0.62 };
+    }
+
+    /* ================= audio ================= */
+    function computeLevels() {
+      if (cfg.testMode) {
+        var target = testHeld ? 1 : 0;
+        testRamp += (target - testRamp) * (testHeld ? 0.05 : 0.03);
+        rawLevel = testRamp * 0.9;
+        highFreqEnergy = testRamp;
+        return;
       }
-    }catch(e){}
-  }
+      if (!analyser) { rawLevel = 0; highFreqEnergy = 0; return; }
+      analyser.getByteTimeDomainData(timeData);
+      var sum = 0;
+      for (var i = 0; i < timeData.length; i++) { var v = (timeData[i] - 128) / 128; sum += v * v; }
+      rawLevel = Math.sqrt(sum / timeData.length);
 
-  /* reveal video upload */
-  var uploadVideoBtn=document.getElementById('uploadVideoBtn'), videoFileInput=document.getElementById('videoFileInput');
-  var removeVideoBtn=document.getElementById('removeVideoBtn'), videoEnabledChk=document.getElementById('videoEnabledChk');
-  var videoStatusEl=document.getElementById('videoStatus');
-
-  function setVideoFromBlob(blob, label){
-    if(currentVideoObjectURL){ URL.revokeObjectURL(currentVideoObjectURL); }
-    currentVideoObjectURL=URL.createObjectURL(blob);
-    videoEl.src=currentVideoObjectURL;
-    try{ videoEl.load(); }catch(e){}
-    hasVideo=true; // optimistic; flipped off below if this browser can't decode it
-    videoStatusEl.textContent='Checking '+(label||'video')+'…';
-
-    var done=false;
-    function onMeta(){
-      if(done) return; done=true; cleanup();
-      var secs=isFinite(videoEl.duration) ? Math.round(videoEl.duration)+'s' : '';
-      videoStatusEl.textContent='Loaded: '+(label||'saved video')+(secs?' ('+secs+')':'');
+      analyser.getByteFrequencyData(freqData);
+      var n = freqData.length, hiStart = Math.floor(n * 0.5), hiSum = 0, total = 0;
+      for (var j = 0; j < n; j++) { total += freqData[j]; if (j > hiStart) hiSum += freqData[j]; }
+      highFreqEnergy = total > 0 ? Math.min(1, (hiSum / (n - hiStart)) / 140) : 0;
     }
-    function onErr(){
-      if(done) return; done=true; cleanup();
-      hasVideo=false;
-      videoStatusEl.textContent="Couldn't play "+(label||'this file')+' in this browser — try exporting as MP4 (H.264/AAC) or WebM (VP9/Opus).';
+
+    async function startMic(deviceId) {
+      var constraints = {
+        audio: {
+          echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+          deviceId: deviceId ? { exact: deviceId } : undefined
+        }
+      };
+      var stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (micStream) { micStream.getTracks().forEach(function (t) { t.stop(); }); }
+      micStream = stream;
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (micSource) micSource.disconnect();
+      micSource = audioCtx.createMediaStreamSource(stream);
+      if (!analyser) {
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048; analyser.smoothingTimeConstant = 0.75;
+        timeData = new Uint8Array(analyser.fftSize);
+        freqData = new Uint8Array(analyser.frequencyBinCount);
+      }
+      micSource.connect(analyser);
+      await populateMicList();
     }
-    function cleanup(){ videoEl.removeEventListener('loadedmetadata', onMeta); videoEl.removeEventListener('error', onErr); }
-    videoEl.addEventListener('loadedmetadata', onMeta);
-    videoEl.addEventListener('error', onErr);
-  }
-  function clearVideo(){
-    if(currentVideoObjectURL){ URL.revokeObjectURL(currentVideoObjectURL); currentVideoObjectURL=null; }
-    videoEl.removeAttribute('src'); try{ videoEl.load(); }catch(e){}
-    hasVideo=false;
-    videoStatusEl.textContent='No video uploaded — reveal stays particles-only.';
-  }
 
-  uploadVideoBtn.addEventListener('click', function(){ videoFileInput.click(); });
-  videoFileInput.addEventListener('change', function(){
-    var f=this.files && this.files[0]; if(!f) return;
-    setVideoFromBlob(f, f.name);
-    idbSet(IDB_VIDEO_KEY, f).catch(function(){});
-  });
-  removeVideoBtn.addEventListener('click', function(){
-    clearVideo();
-    idbDelete(IDB_VIDEO_KEY).catch(function(){});
-  });
-  videoEnabledChk.addEventListener('change', function(){ cfg.videoEnabled=this.checked; saveSettings(); });
+    async function populateMicList() {
+      try {
+        var devices = await navigator.mediaDevices.enumerateDevices();
+        var mics = devices.filter(function (d) { return d.kind === 'audioinput'; });
+        micSelect.innerHTML = '';
+        mics.forEach(function (d, i) {
+          var opt = document.createElement('option');
+          opt.value = d.deviceId; opt.textContent = d.label || ('Microphone ' + (i + 1));
+          micSelect.appendChild(opt);
+        });
+        if (micStream) {
+          var track = micStream.getAudioTracks()[0];
+          if (track) { micSelect.value = track.getSettings().deviceId || micSelect.value; }
+        }
+      } catch (e) { }
+    }
 
-  function loadSavedVideo(){
-    idbGet(IDB_VIDEO_KEY).then(function(blob){
-      if(blob){ setVideoFromBlob(blob, blob.name || 'saved video'); }
-    }).catch(function(){});
-  }
+    /* ================= state machine ================= */
+    function stageLabelFor(score, st) {
+      if (st === 'revealed') return 'Target hit!';
+      if (st === 'exploding') return 'Target hit!';
+      if (score < 0.12) return 'Idle';
+      if (score < 0.4) return 'Getting louder';
+      if (score < 0.7) return "It's forming…";
+      if (score < 0.95) return 'Scream louder!';
+      return 'Almost there!';
+    }
 
-  /* keyboard */
-  window.addEventListener('keydown', function(e){
-    if(e.code==='Space'){ testHeld=true; e.preventDefault(); }
-    if(e.key==='f'||e.key==='F') toggleFullscreen();
-    if(e.key==='r'||e.key==='R'){ forceReset(); }
-    if(e.key==='s'||e.key==='S') toggleDrawer();
-    if(e.key==='Escape') drawer.classList.remove('open');
-  });
-  window.addEventListener('keyup', function(e){ if(e.code==='Space') testHeld=false; });
-  canvas.addEventListener('mousedown', function(){ if(cfg.testMode) testHeld=true; });
-  window.addEventListener('mouseup', function(){ testHeld=false; });
+    var lastT = performance.now();
+    function tick(now) {
+      var dt = Math.min(64, now - lastT); lastT = now;
 
-  /* ================= start gate ================= */
-  var startScreen=document.getElementById('startScreen');
-  var startBtn=document.getElementById('startBtn');
-  var startErr=document.getElementById('startErr');
+      computeLevels();
+      var target = rawLevel > smoothedScore ? cfg.attack : cfg.release;
+      smoothedScore += (rawLevel - smoothedScore) * Math.min(1, target * (dt / 16.67));
 
-  startBtn.addEventListener('click', async function(){
-    startBtn.textContent='Requesting microphone…';
-    try{
-      await startMic();
-      startScreen.style.display='none';
-      lastT=performance.now();
+      var norm = (smoothedScore - cfg.floor) / Math.max(0.001, (cfg.target - cfg.floor));
+      norm = Math.max(0, Math.min(1, norm));
+
+      if (state === 'idle' && norm > 0.04) state = 'forming';
+      if (state === 'forming' && norm <= 0.015) state = 'idle';
+
+      if (state === 'forming') {
+        if (norm >= 0.995) { sustainAbove += dt; } else { sustainAbove = 0; }
+        if (sustainAbove >= cfg.sustainMs) {
+          state = 'revealed'; stateSince = now; sustainAbove = 0;
+          particles.forEach(function (p) { p.actEase = 1; }); // snap to a fully-formed artwork right on the hit
+          flashOnce();
+          if (hasVideo && cfg.videoEnabled) { playRevealVideo(); }
+        }
+      }
+
+      if (state === 'revealed' && !videoPlaying && (now - stateSince) >= cfg.holdMs) {
+        if (cfg.autoReset) { state = 'exploding'; stateSince = now; }
+      }
+      if (state === 'exploding' && (now - stateSince) >= cfg.explodeMs) {
+        assignNewHomes();
+        state = 'idle'; stateSince = now; norm = 0;
+      }
+
+      updateParticles(norm, dt, now);
+      render(norm, now);
+      updateHud(norm);
+      updateLiveMeter();
+
       requestAnimationFrame(tick);
-    }catch(err){
-      showMicError();
     }
-  });
-  function showMicError(){
-    startErr.style.display='block';
-    startErr.textContent='Microphone access was blocked or unavailable. Check your browser’s site permissions and try again.';
-    startBtn.textContent='Try again';
-  }
 
-  loadSettings();
-  syncSlidersFromCfg();
-  loadSavedArtwork();
-  loadSavedVideo();
-})();
+    function flashOnce() {
+      if (reducedMotion) return;
+      flashEl.style.opacity = '0.9';
+      setTimeout(function () { flashEl.style.opacity = '0'; }, 90);
+    }
+
+    function updateParticles(norm, dt, now) {
+      var c = artCenter();
+      // pull = overall energy/intensity (how hard everything is rushing), separate
+      // from *which* particles are currently part of the artwork (see revealAt below).
+      var pull;
+      if (state === 'revealed') pull = 1;
+      else if (state === 'exploding') pull = 0;
+      else pull = Math.pow(norm, 1.4);
+
+      var jitterAmt = (0.35 + highFreqEnergy * 1.6) * (reducedMotion ? 0.35 : 1);
+
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+
+        if (state === 'exploding') {
+          var dx0 = p.x - c.x, dy0 = p.y - c.y;
+          var d0 = Math.sqrt(dx0 * dx0 + dy0 * dy0) || 1;
+          p.vx += (dx0 / d0) * 0.9;
+          p.vy += (dy0 / d0) * 0.9;
+          p.actEase = 0;
+        } else {
+          // each particle only joins the artwork once the scream level passes
+          // its own personal threshold — so louder = more of the artwork visibly
+          // assembles, instead of every particle drifting toward a vague blob.
+          var isActive = pull >= p.revealAt;
+          var tx, ty;
+          if (isActive) { tx = c.x + p.nx * c.scale; ty = c.y + p.ny * c.scale; }
+          else { tx = p.hx; ty = p.hy; }
+
+          var ax = (tx - p.x) * (0.02 + pull * 0.10);
+          var ay = (ty - p.y) * (0.02 + pull * 0.10);
+          p.vx += ax; p.vy += ay;
+          p.vx += Math.sin(now * 0.0016 + p.phase) * jitterAmt * (1 - pull * 0.6);
+          p.vy += Math.cos(now * 0.0014 + p.phase * 1.3) * jitterAmt * (1 - pull * 0.6);
+
+          var easeTarget = isActive ? 1 : 0;
+          p.actEase += (easeTarget - p.actEase) * 0.09;
+        }
+
+        p.vx *= 0.86; p.vy *= 0.86;
+        p.x += p.vx; p.y += p.vy;
+
+        if (p.x < -40) p.x = -40; if (p.x > W + 40) p.x = W + 40;
+        if (p.y < -40) p.y = -40; if (p.y > H + 40) p.y = H + 40;
+
+        p.formAmt = p.actEase;
+      }
+    }
+
+    function render(norm, now) {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(7,8,13,0.20)';
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+        var heat = Math.min(1, norm * 1.1);
+        var cr = lerp(94, 255, heat), cg = lerp(234, 59, heat), cb = lerp(212, 92, heat);
+        var fr = lerp(cr, p.cr, p.formAmt), fg = lerp(cg, p.cg, p.formAmt), fb = lerp(cb, p.cb, p.formAmt);
+        var alpha = 0.55 + p.formAmt * 0.4;
+        var r = p.size * (1 + p.formAmt * 0.9 + heat * 0.3);
+        ctx.fillStyle = 'rgba(' + (fr | 0) + ',' + (fg | 0) + ',' + (fb | 0) + ',' + alpha.toFixed(2) + ')';
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    /* ================= HUD ================= */
+    var pctEl = document.getElementById('pct'), pctSuffix = document.getElementById('pctSuffix');
+    var stageLabelEl = document.getElementById('stageLabel');
+    var meterFill = document.getElementById('meterFill');
+    var instructionEl = document.getElementById('instruction');
+    var revealBanner = document.getElementById('revealBanner');
+    var flashEl = document.getElementById('flash');
+    var liveMeter = document.getElementById('liveMeter');
+    var hudEl = document.getElementById('hud');
+    var videoEl = document.getElementById('revealVideo');
+
+    /* ================= reveal video ================= */
+    function playRevealVideo() {
+      videoPlaying = true;
+      try {
+        videoEl.muted = false;
+        videoEl.currentTime = 0;
+        videoEl.classList.add('show');
+        var p = videoEl.play();
+        if (p && p.catch) {
+          p.catch(function () {
+            // autoplay-with-sound blocked: retry muted so the reveal still plays visually
+            videoEl.muted = true;
+            videoEl.play().catch(function () { videoPlaying = false; videoEl.classList.remove('show'); });
+          });
+        }
+      } catch (e) { videoPlaying = false; }
+      clearTimeout(videoSafetyTimer);
+      videoSafetyTimer = setTimeout(function () { if (videoPlaying) forceReset(); }, 60000);
+    }
+    function forceReset() {
+      if (videoPlaying) {
+        videoPlaying = false;
+        try { videoEl.pause(); } catch (e) { }
+        videoEl.classList.remove('show');
+        clearTimeout(videoSafetyTimer);
+      }
+      state = 'exploding'; stateSince = performance.now();
+    }
+    videoEl.addEventListener('ended', forceReset);
+    videoEl.addEventListener('error', function () { if (videoPlaying) forceReset(); });
+
+    function updateHud(norm) {
+      var pct = Math.round(norm * 100);
+      pctEl.childNodes[0].nodeValue = pct;
+      meterFill.style.height = (norm * 100) + '%';
+      stageLabelEl.textContent = stageLabelFor(norm, state);
+      pctEl.classList.toggle('hot', norm > 0.55 || state === 'revealed');
+
+      instructionEl.style.opacity = (state === 'idle') ? '1' : '0';
+      revealBanner.classList.toggle('show', (state === 'revealed' || state === 'exploding') && !videoPlaying);
+      hudEl.style.opacity = videoPlaying ? '0' : '1';
+    }
+    function updateLiveMeter() {
+      var span = Math.max(0.001, cfg.target - cfg.floor * 0.3);
+      var v = Math.max(0, Math.min(1, (smoothedScore - cfg.floor * 0.3) / span));
+      liveMeter.style.width = (v * 100) + '%';
+    }
+
+    /* ================= settings UI ================= */
+    var drawer = document.getElementById('drawer');
+    var gearBtn = document.getElementById('gearBtn');
+    var closeDrawer = document.getElementById('closeDrawer');
+    function openDrawer() { drawer.classList.add('open'); }
+    function toggleDrawer() { drawer.classList.toggle('open'); }
+    gearBtn.addEventListener('click', toggleDrawer);
+    closeDrawer.addEventListener('click', function () { drawer.classList.remove('open'); });
+
+    var floorSlider = document.getElementById('floorSlider'), floorVal = document.getElementById('floorVal');
+    var targetSlider = document.getElementById('targetSlider'), targetVal = document.getElementById('targetVal');
+    var attackSlider = document.getElementById('attackSlider'), attackVal = document.getElementById('attackVal');
+    var releaseSlider = document.getElementById('releaseSlider'), releaseVal = document.getElementById('releaseVal');
+    var sustainSlider = document.getElementById('sustainSlider'), sustainVal = document.getElementById('sustainVal');
+    var holdSlider = document.getElementById('holdSlider'), holdVal = document.getElementById('holdVal');
+    var autoResetChk = document.getElementById('autoResetChk');
+    var testModeChk = document.getElementById('testModeChk');
+    var micSelect = document.getElementById('micSelect');
+    var calibrateNote = document.getElementById('calibrateNote');
+
+    function syncSlidersFromCfg() {
+      floorSlider.value = cfg.floor; floorVal.textContent = cfg.floor.toFixed(3);
+      targetSlider.value = cfg.target; targetVal.textContent = cfg.target.toFixed(3);
+      attackSlider.value = cfg.attack; attackVal.textContent = cfg.attack.toFixed(2);
+      releaseSlider.value = cfg.release; releaseVal.textContent = cfg.release.toFixed(3);
+      sustainSlider.value = cfg.sustainMs; sustainVal.textContent = cfg.sustainMs + 'ms';
+      holdSlider.value = cfg.holdMs / 1000; holdVal.textContent = (cfg.holdMs / 1000).toFixed(1) + 's';
+      autoResetChk.checked = cfg.autoReset;
+      testModeChk.checked = cfg.testMode;
+      videoEnabledChk.checked = cfg.videoEnabled;
+    }
+    function saveSettings() {
+      try {
+        localStorage.setItem(LS_SETTINGS, JSON.stringify({
+          floor: cfg.floor, target: cfg.target, attack: cfg.attack, release: cfg.release,
+          sustainMs: cfg.sustainMs, holdMs: cfg.holdMs, autoReset: cfg.autoReset, videoEnabled: cfg.videoEnabled
+        }));
+      } catch (e) { }
+    }
+    function loadSettings() {
+      try {
+        var raw = localStorage.getItem(LS_SETTINGS);
+        if (raw) { var s = JSON.parse(raw); Object.assign(cfg, s); }
+      } catch (e) { }
+    }
+
+    floorSlider.addEventListener('input', function () { cfg.floor = parseFloat(this.value); floorVal.textContent = cfg.floor.toFixed(3); saveSettings(); });
+    targetSlider.addEventListener('input', function () { cfg.target = parseFloat(this.value); targetVal.textContent = cfg.target.toFixed(3); saveSettings(); });
+    attackSlider.addEventListener('input', function () { cfg.attack = parseFloat(this.value); attackVal.textContent = cfg.attack.toFixed(2); saveSettings(); });
+    releaseSlider.addEventListener('input', function () { cfg.release = parseFloat(this.value); releaseVal.textContent = cfg.release.toFixed(3); saveSettings(); });
+    sustainSlider.addEventListener('input', function () { cfg.sustainMs = parseFloat(this.value); sustainVal.textContent = cfg.sustainMs + 'ms'; saveSettings(); });
+    holdSlider.addEventListener('input', function () { cfg.holdMs = parseFloat(this.value) * 1000; holdVal.textContent = (cfg.holdMs / 1000).toFixed(1) + 's'; saveSettings(); });
+    autoResetChk.addEventListener('change', function () { cfg.autoReset = this.checked; saveSettings(); });
+    testModeChk.addEventListener('change', function () { cfg.testMode = this.checked; });
+    micSelect.addEventListener('change', function () { startMic(this.value).catch(showMicError); });
+
+    document.getElementById('setFloorBtn').addEventListener('click', function () {
+      calibrateNote.textContent = 'Listening to room tone…';
+      var samples = [], startT = performance.now();
+      var iv = setInterval(function () {
+        samples.push(rawLevel);
+        if (performance.now() - startT > 1100) {
+          clearInterval(iv);
+          var avg = samples.reduce(function (a, b) { return a + b; }, 0) / Math.max(1, samples.length);
+          cfg.floor = Math.max(0.002, avg * 1.2);
+          syncSlidersFromCfg(); saveSettings();
+          calibrateNote.textContent = 'Idle floor set: ' + cfg.floor.toFixed(3);
+        }
+      }, 40);
+    });
+    document.getElementById('setTargetBtn').addEventListener('click', function () {
+      var count = 3;
+      calibrateNote.textContent = 'Scream in ' + count + '…';
+      var pre = setInterval(function () {
+        count--;
+        if (count <= 0) { clearInterval(pre); beginCapture(); }
+        else calibrateNote.textContent = 'Scream in ' + count + '…';
+      }, 700);
+      function beginCapture() {
+        calibrateNote.textContent = 'SCREAM NOW!';
+        var peak = 0, startT = performance.now();
+        var iv = setInterval(function () {
+          if (rawLevel > peak) peak = rawLevel;
+          if (performance.now() - startT > 2200) {
+            clearInterval(iv);
+            cfg.target = Math.max(cfg.floor + 0.02, peak * 0.96);
+            syncSlidersFromCfg(); saveSettings();
+            calibrateNote.textContent = 'Target set: ' + cfg.target.toFixed(3);
+          }
+        }, 30);
+      }
+    });
+
+    document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+    document.getElementById('resetNowBtn').addEventListener('click', forceReset);
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(function () { }); }
+      else { document.exitFullscreen().catch(function () { }); }
+    }
+
+    /* artwork upload */
+    var uploadBtn = document.getElementById('uploadBtn'), fileInput = document.getElementById('fileInput');
+    uploadBtn.addEventListener('click', function () { fileInput.click(); });
+    fileInput.addEventListener('change', function () {
+      var f = this.files && this.files[0]; if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        var dataUrl = e.target.result;
+        var img = new Image();
+        img.onload = function () {
+          currentTargets = buildArtworkFromImage(img);
+          initParticles(currentTargets);
+          try { localStorage.setItem(LS_ARTWORK, dataUrl); } catch (err) { }
+        };
+        img.src = dataUrl;
+      };
+      reader.readAsDataURL(f);
+    });
+    document.getElementById('resetArtBtn').addEventListener('click', function () {
+      try { localStorage.removeItem(LS_ARTWORK); } catch (e) { }
+      loadBundledArtwork();
+    });
+
+    // The site's actual default: your artwork/video shipped as real files in the
+    // repo, so every visitor sees the same media (a local upload above only
+    // overrides it in *your own* browser, for previewing — it never affects
+    // what other people see).
+    function loadBundledArtwork() {
+      var img = new Image();
+      img.onload = function () { currentTargets = buildArtworkFromImage(img); initParticles(currentTargets); };
+      img.onerror = function () { currentTargets = buildDefaultArtwork(); initParticles(currentTargets); };
+      img.src = 'media/artwork.png';
+    }
+
+    function loadSavedArtwork() {
+      try {
+        var saved = localStorage.getItem(LS_ARTWORK);
+        if (saved) {
+          var img = new Image();
+          img.onload = function () { currentTargets = buildArtworkFromImage(img); initParticles(currentTargets); };
+          img.src = saved;
+        }
+      } catch (e) { }
+    }
+
+    /* reveal video upload */
+    var uploadVideoBtn = document.getElementById('uploadVideoBtn'), videoFileInput = document.getElementById('videoFileInput');
+    var removeVideoBtn = document.getElementById('removeVideoBtn'), videoEnabledChk = document.getElementById('videoEnabledChk');
+    var videoStatusEl = document.getElementById('videoStatus');
+
+    function applyVideoSrc(src, label) {
+      videoEl.src = src;
+      try { videoEl.load(); } catch (e) { }
+      hasVideo = true; // optimistic; flipped off below if this browser can't decode it
+      videoStatusEl.textContent = 'Checking ' + (label || 'video') + '…';
+
+      var done = false;
+      function onMeta() {
+        if (done) return; done = true; cleanup();
+        var secs = isFinite(videoEl.duration) ? Math.round(videoEl.duration) + 's' : '';
+        videoStatusEl.textContent = 'Loaded: ' + (label || 'video') + (secs ? ' (' + secs + ')' : '');
+      }
+      function onErr() {
+        if (done) return; done = true; cleanup();
+        hasVideo = false;
+        videoStatusEl.textContent = "Couldn't play " + (label || 'this file') + ' in this browser — try exporting as MP4 (H.264/AAC) or WebM (VP9/Opus).';
+      }
+      function cleanup() { videoEl.removeEventListener('loadedmetadata', onMeta); videoEl.removeEventListener('error', onErr); }
+      videoEl.addEventListener('loadedmetadata', onMeta);
+      videoEl.addEventListener('error', onErr);
+    }
+    function setVideoFromBlob(blob, label) {
+      if (currentVideoObjectURL) { URL.revokeObjectURL(currentVideoObjectURL); }
+      currentVideoObjectURL = URL.createObjectURL(blob);
+      applyVideoSrc(currentVideoObjectURL, label);
+    }
+    function loadBundledVideo() {
+      applyVideoSrc('media/reveal.mp4', 'reveal video');
+    }
+
+    uploadVideoBtn.addEventListener('click', function () { videoFileInput.click(); });
+    videoFileInput.addEventListener('change', function () {
+      var f = this.files && this.files[0]; if (!f) return;
+      setVideoFromBlob(f, f.name);
+      idbSet(IDB_VIDEO_KEY, f).catch(function () { });
+    });
+    removeVideoBtn.addEventListener('click', function () {
+      if (currentVideoObjectURL) { URL.revokeObjectURL(currentVideoObjectURL); currentVideoObjectURL = null; }
+      idbDelete(IDB_VIDEO_KEY).catch(function () { });
+      loadBundledVideo();
+    });
+    videoEnabledChk.addEventListener('change', function () { cfg.videoEnabled = this.checked; saveSettings(); });
+
+    function loadSavedVideo() {
+      idbGet(IDB_VIDEO_KEY).then(function (blob) {
+        if (blob) { setVideoFromBlob(blob, blob.name || 'saved video'); }
+      }).catch(function () { });
+    }
+
+    /* keyboard */
+    window.addEventListener('keydown', function (e) {
+      if (e.code === 'Space') { testHeld = true; e.preventDefault(); }
+      if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+      if (e.key === 'r' || e.key === 'R') { forceReset(); }
+      if (e.key === 's' || e.key === 'S') toggleDrawer();
+      if (e.key === 'Escape') drawer.classList.remove('open');
+    });
+    window.addEventListener('keyup', function (e) { if (e.code === 'Space') testHeld = false; });
+    canvas.addEventListener('mousedown', function () { if (cfg.testMode) testHeld = true; });
+    window.addEventListener('mouseup', function () { testHeld = false; });
+
+    /* ================= start gate ================= */
+    var startScreen = document.getElementById('startScreen');
+    var startBtn = document.getElementById('startBtn');
+    var startErr = document.getElementById('startErr');
+
+    startBtn.addEventListener('click', async function () {
+      startBtn.textContent = 'Requesting microphone…';
+      try {
+        await startMic();
+        startScreen.style.display = 'none';
+        lastT = performance.now();
+        requestAnimationFrame(tick);
+      } catch (err) {
+        showMicError();
+      }
+    });
+    function showMicError() {
+      startErr.style.display = 'block';
+      startErr.textContent = 'Microphone access was blocked or unavailable. Check your browser’s site permissions and try again.';
+      startBtn.textContent = 'Try again';
+    }
+
+    loadSettings();
+    syncSlidersFromCfg();
+    loadBundledArtwork();      // the shipped default every visitor sees
+    loadBundledVideo();
+    loadSavedArtwork();        // only overrides in *this* browser, if you uploaded a local preview
+    loadSavedVideo();
+  })();
 </script>
